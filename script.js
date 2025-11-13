@@ -94,20 +94,30 @@ urlFetchBtn.addEventListener('click', async () => {
         urlFetchBtn.disabled = true;
         urlFetchBtn.textContent = '取得中...';
 
-        // URLからテキストを取得（CORSの問題があるため、プロキシが必要）
-        // ここでは簡易的な実装
-        const response = await fetch(url);
-        const html = await response.text();
+        // バックエンドAPIを呼び出してURLからテキストを取得
+        const response = await fetch('/api/fetch-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url })
+        });
 
-        // HTMLからテキストを抽出（簡易版）
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        uploadedText = doc.body.textContent || '';
+        const data = await response.json();
 
-        alert('URLからテキストを取得しました');
-        updateAnalyzeButton();
+        if (!response.ok) {
+            throw new Error(data.error || 'URLからの取得に失敗しました');
+        }
+
+        if (data.success && data.text) {
+            uploadedText = data.text;
+            alert(`URLからテキストを取得しました（${data.length}文字）`);
+            updateAnalyzeButton();
+        } else {
+            throw new Error('テキストの取得に失敗しました');
+        }
     } catch (error) {
-        alert('URLからの取得に失敗しました。直接テキストを貼り付けてください。');
+        alert(error.message || 'URLからの取得に失敗しました。直接テキストを貼り付けてください。');
         console.error(error);
     } finally {
         urlFetchBtn.disabled = false;
