@@ -1,0 +1,326 @@
+// グローバル変数
+let currentTab = 'pdf';
+let uploadedText = '';
+
+// DOM要素
+const disclaimerScreen = document.getElementById('disclaimer-screen');
+const checkerScreen = document.getElementById('checker-screen');
+const consentCheckbox = document.getElementById('consent-checkbox');
+const startButton = document.getElementById('start-button');
+const fileInput = document.getElementById('file-input');
+const fileSelectBtn = document.getElementById('file-select-btn');
+const uploadArea = document.getElementById('upload-area');
+const fileInfo = document.getElementById('file-info');
+const urlInput = document.getElementById('url-input');
+const urlFetchBtn = document.getElementById('url-fetch-btn');
+const textInput = document.getElementById('text-input');
+const analyzeBtn = document.getElementById('analyze-btn');
+const loading = document.getElementById('loading');
+const results = document.getElementById('results');
+
+// 免責事項の同意チェック
+consentCheckbox.addEventListener('change', (e) => {
+    startButton.disabled = !e.target.checked;
+});
+
+// ツール使用開始
+startButton.addEventListener('click', () => {
+    disclaimerScreen.classList.remove('active');
+    checkerScreen.classList.add('active');
+});
+
+// タブ切り替え
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+
+        // タブボタンの切り替え
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // タブパネルの切り替え
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`${tab}-tab`).classList.add('active');
+
+        currentTab = tab;
+        updateAnalyzeButton();
+    });
+});
+
+// ファイル選択ボタン
+fileSelectBtn.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// ファイル選択
+fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        await handleFileUpload(file);
+    }
+});
+
+// ドラッグ&ドロップ
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') {
+        await handleFileUpload(file);
+    } else {
+        alert('PDFファイルのみアップロード可能です');
+    }
+});
+
+// URL取得ボタン
+urlFetchBtn.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    if (!url) {
+        alert('URLを入力してください');
+        return;
+    }
+
+    try {
+        urlFetchBtn.disabled = true;
+        urlFetchBtn.textContent = '取得中...';
+
+        // URLからテキストを取得（CORSの問題があるため、プロキシが必要）
+        // ここでは簡易的な実装
+        const response = await fetch(url);
+        const html = await response.text();
+
+        // HTMLからテキストを抽出（簡易版）
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        uploadedText = doc.body.textContent || '';
+
+        alert('URLからテキストを取得しました');
+        updateAnalyzeButton();
+    } catch (error) {
+        alert('URLからの取得に失敗しました。直接テキストを貼り付けてください。');
+        console.error(error);
+    } finally {
+        urlFetchBtn.disabled = false;
+        urlFetchBtn.textContent = 'URLから取得';
+    }
+});
+
+// テキスト入力の監視
+textInput.addEventListener('input', (e) => {
+    uploadedText = e.target.value.trim();
+    updateAnalyzeButton();
+});
+
+// 分析ボタン
+analyzeBtn.addEventListener('click', async () => {
+    let textToAnalyze = '';
+
+    if (currentTab === 'text') {
+        textToAnalyze = textInput.value.trim();
+    } else {
+        textToAnalyze = uploadedText;
+    }
+
+    if (!textToAnalyze) {
+        alert('ホワイトペーパーのテキストを入力してください');
+        return;
+    }
+
+    await analyzeWhitepaper(textToAnalyze);
+});
+
+// ファイルアップロード処理
+async function handleFileUpload(file) {
+    try {
+        // PDF.jsを使用してPDFからテキストを抽出
+        // 注: PDF.jsはCDNから読み込む必要があります
+        alert('PDF解析機能は現在開発中です。代わりにテキスト入力タブからテキストを貼り付けてください。');
+
+        // 将来的な実装のプレースホルダー
+        // const text = await extractTextFromPDF(file);
+        // uploadedText = text;
+
+        fileInfo.style.display = 'block';
+        fileInfo.innerHTML = `
+            <div>
+                <strong>${file.name}</strong>
+                <span style="color: var(--text-secondary);">(${(file.size / 1024).toFixed(2)} KB)</span>
+            </div>
+            <button class="btn-secondary" onclick="clearFile()">削除</button>
+        `;
+
+        updateAnalyzeButton();
+    } catch (error) {
+        alert('PDFの読み込みに失敗しました');
+        console.error(error);
+    }
+}
+
+// ファイルクリア
+function clearFile() {
+    fileInput.value = '';
+    fileInfo.style.display = 'none';
+    uploadedText = '';
+    updateAnalyzeButton();
+}
+
+// 分析ボタンの有効/無効を更新
+function updateAnalyzeButton() {
+    const hasContent = uploadedText.length > 0 || (currentTab === 'text' && textInput.value.trim().length > 0);
+    analyzeBtn.disabled = !hasContent;
+}
+
+// ホワイトペーパーを分析
+async function analyzeWhitepaper(text) {
+    try {
+        analyzeBtn.disabled = true;
+        loading.style.display = 'block';
+        results.style.display = 'none';
+
+        // バックエンドAPIを呼び出し
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text })
+        });
+
+        // レート制限ヘッダーを取得
+        const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
+        const rateLimitReset = response.headers.get('X-RateLimit-Reset');
+
+        if (!response.ok) {
+            const errorData = await response.json();
+
+            // レート制限エラーの特別な処理
+            if (response.status === 429) {
+                const resetTime = rateLimitReset ? new Date(parseInt(rateLimitReset)) : null;
+                const waitMinutes = resetTime ? Math.ceil((resetTime - Date.now()) / 60000) : 1;
+                throw new Error(
+                    `リクエスト制限に達しました。\n${waitMinutes}分後に再試行してください。\n\n` +
+                    `このツールは悪用防止のため、1分間に10回までの分析に制限されています。`
+                );
+            }
+
+            throw new Error(errorData.error || '分析に失敗しました');
+        }
+
+        const analysisResult = await response.json();
+
+        // レート制限の残り回数を表示（デバッグ用）
+        if (rateLimitRemaining !== null) {
+            console.log(`残りリクエスト数: ${rateLimitRemaining}/10`);
+        }
+
+        displayResults(analysisResult);
+
+    } catch (error) {
+        // エラーメッセージを改行を保持して表示
+        const errorMessage = error.message.replace(/\\n/g, '\n');
+        alert(errorMessage);
+        console.error('Analysis error:', error);
+    } finally {
+        analyzeBtn.disabled = false;
+        loading.style.display = 'none';
+    }
+}
+
+// 結果を表示
+function displayResults(analysis) {
+    const riskScoreClass = analysis.riskLevel === 'high' ? 'score-high' :
+                          analysis.riskLevel === 'medium' ? 'score-medium' : 'score-low';
+
+    const riskLabelText = analysis.riskLevel === 'high' ? '⚠️ 高リスク - 投資非推奨' :
+                         analysis.riskLevel === 'medium' ? '⚡ 中リスク - 要注意' : '✅ 低リスク';
+
+    const riskLabelClass = analysis.riskLevel === 'high' ? 'score-high' :
+                          analysis.riskLevel === 'medium' ? 'score-medium' : 'score-low';
+
+    let html = `
+        <div class="risk-score">
+            <h3>詐欺リスクスコア</h3>
+            <div class="score-value ${riskScoreClass}">${analysis.riskScore}/100</div>
+            <div class="risk-label ${riskLabelClass}">${riskLabelText}</div>
+        </div>
+
+        <div class="analysis-section">
+            <h3>📊 総合分析</h3>
+            <p>${analysis.summary}</p>
+        </div>
+    `;
+
+    if (analysis.redFlags && analysis.redFlags.length > 0) {
+        html += `
+            <div class="analysis-section">
+                <h3>🚩 重大な危険信号</h3>
+                ${analysis.redFlags.map(flag => `
+                    <div class="red-flag-item">
+                        <strong>⚠️</strong> ${flag}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    if (analysis.warnings && analysis.warnings.length > 0) {
+        html += `
+            <div class="analysis-section">
+                <h3>⚡ 注意すべき点</h3>
+                ${analysis.warnings.map(warning => `
+                    <div class="warning-item">
+                        <strong>!</strong> ${warning}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    if (analysis.positivePoints && analysis.positivePoints.length > 0) {
+        html += `
+            <div class="analysis-section">
+                <h3>✅ ポジティブな点</h3>
+                ${analysis.positivePoints.map(point => `
+                    <div class="positive-item">
+                        <strong>✓</strong> ${point}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    if (analysis.recommendations && analysis.recommendations.length > 0) {
+        html += `
+            <div class="recommendation-box">
+                <h3>💡 推奨アクション</h3>
+                <ul>
+                    ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    html += `
+        <div style="margin-top: 30px; padding: 20px; background: var(--bg-color); border-radius: 8px; text-align: center;">
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+                ⚠️ この分析結果は参考情報です。投資判断は必ず専門家に相談の上、ご自身の責任で行ってください。
+            </p>
+        </div>
+    `;
+
+    results.innerHTML = html;
+    results.style.display = 'block';
+
+    // 結果までスクロール
+    results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>暗号資産詐欺チェッカー - 免責事項</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="disclaimer-screen" class="screen active">
+            <div class="disclaimer-content">
+                <h1>暗号資産詐欺チェッカー</h1>
+                <p class="subtitle">Cryptocurrency Scam Checker - ホワイトペーパー分析ツール</p>
+
+                <div class="warning-box">
+                    <h2>⚠️ 重要な注意事項</h2>
+                    <p>このツールをご利用になる前に、以下の免責事項と利用規約を必ずお読みください。</p>
+                </div>
+
+                <div class="terms-box">
+                    <h3>免責事項</h3>
+                    <ol>
+                        <li><strong>法的助言ではありません：</strong> 本ツールは研究・教育目的で提供されており、法的助言、投資助言、金融アドバイスを提供するものではありません。</li>
+
+                        <li><strong>判断の参考情報のみ：</strong> 本ツールの分析結果は、あくまで参考情報です。最終的な投資判断は、ご自身の責任で行ってください。</li>
+
+                        <li><strong>正確性の保証なし：</strong> 本ツールの分析結果の正確性、完全性、有用性について、一切の保証をいたしません。</li>
+
+                        <li><strong>責任の限定：</strong> 本ツールの利用により生じたいかなる損害（投資損失、機会損失を含む）についても、開発者は一切の責任を負いません。</li>
+
+                        <li><strong>第三者サービス：</strong> 本ツールはGoogle Gemini APIを使用しています。APIの利用には、ユーザー自身のAPIキーが必要です。APIの利用に関する責任はユーザーに帰属します。</li>
+                    </ol>
+
+                    <h3>利用規約</h3>
+                    <ol>
+                        <li><strong>自己責任での利用：</strong> 本ツールの利用は、全てユーザーの自己責任において行ってください。</li>
+
+                        <li><strong>専門家への相談：</strong> 実際の投資を行う前には、必ず金融の専門家、弁護士等の適切な専門家にご相談ください。</li>
+
+                        <li><strong>APIキーの管理：</strong> ご自身のAPIキーは厳重に管理してください。APIキーの漏洩による損害について、開発者は責任を負いません。</li>
+
+                        <li><strong>データの取り扱い：</strong> アップロードされたホワイトペーパーは、分析のためにGoogle Gemini APIに送信されます。機密情報の取り扱いにご注意ください。</li>
+
+                        <li><strong>研究・教育目的：</strong> 本ツールは暗号資産詐欺の手口を学び、リスクを理解するための教育ツールです。</li>
+                    </ol>
+
+                    <h3>推奨事項</h3>
+                    <ul>
+                        <li>複数の情報源から情報を収集し、総合的に判断してください</li>
+                        <li>「確実に儲かる」「絶対に安全」などの謳い文句には注意してください</li>
+                        <li>投資する前に、プロジェクトの開発チーム、実績、コミュニティを調査してください</li>
+                        <li>余剰資金の範囲内で投資を行ってください</li>
+                        <li>定期的に投資ポートフォリオを見直してください</li>
+                    </ul>
+                </div>
+
+                <div class="consent-box">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="consent-checkbox">
+                        <span class="checkmark"></span>
+                        <span class="consent-text">上記の免責事項と利用規約を読み、理解し、同意します</span>
+                    </label>
+                    <button id="start-button" class="btn-primary" disabled>ツールを使用開始</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="checker-screen" class="screen">
+            <header>
+                <h1>暗号資産詐欺チェッカー</h1>
+                <p>ホワイトペーパーを分析して詐欺リスクを評価します</p>
+            </header>
+
+            <div class="main-content">
+                <div class="upload-section">
+                    <h2>1. ホワイトペーパーの入力</h2>
+
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="pdf">PDFアップロード</button>
+                        <button class="tab-btn" data-tab="url">URL入力</button>
+                        <button class="tab-btn" data-tab="text">テキスト入力</button>
+                    </div>
+
+                    <div class="tab-content">
+                        <div id="pdf-tab" class="tab-panel active">
+                            <div class="upload-area" id="upload-area">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <p>PDFファイルをドラッグ&ドロップ</p>
+                                <p class="or-text">または</p>
+                                <input type="file" id="file-input" accept=".pdf" hidden>
+                                <button class="btn-secondary" id="file-select-btn">ファイルを選択</button>
+                            </div>
+                            <div id="file-info" class="file-info" style="display: none;"></div>
+                        </div>
+
+                        <div id="url-tab" class="tab-panel">
+                            <input type="url" id="url-input" placeholder="ホワイトペーパーのURLを入力" class="url-input">
+                            <button class="btn-secondary" id="url-fetch-btn">URLから取得</button>
+                        </div>
+
+                        <div id="text-tab" class="tab-panel">
+                            <textarea id="text-input" placeholder="ホワイトペーパーのテキストを貼り付けてください" rows="10"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analyze-section">
+                    <button id="analyze-btn" class="btn-primary btn-large" disabled>
+                        <span>詐欺リスクを分析</span>
+                    </button>
+                    <div id="loading" class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>ホワイトペーパーを分析中...</p>
+                    </div>
+                </div>
+
+                <div id="results" class="results" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
