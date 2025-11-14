@@ -1,0 +1,94 @@
+Bitcoin: A Peer-to-Peer Electronic Cash System
+
+Abstract
+A purely peer-to-peer version of electronic cash would allow online payments to be sent directly from one party to another without going through a financial institution. Digital signatures provide part of the solution, but the main benefits are lost if a trusted third party is still required to prevent double-spending. We propose a solution to the double-spending problem using a peer-to-peer network. The network timestamps transactions by hashing them into an ongoing chain of hash-based proof-of-work, forming a record that cannot be changed without redoing the proof-of-work.
+
+Introduction
+Commerce on the Internet has come to rely almost exclusively on financial institutions serving as trusted third parties to process electronic payments. While the system works well enough for most transactions, it still suffers from the inherent weaknesses of the trust based model. Completely non-reversible transactions are not really possible, since financial institutions cannot avoid mediating disputes. The cost of mediation increases transaction costs, limiting the minimum practical transaction size and cutting off the possibility for small casual transactions.
+
+What is needed is an electronic payment system based on cryptographic proof instead of trust, allowing any two willing parties to transact directly with each other without the need for a trusted third party. Transactions that are computationally impractical to reverse would protect sellers from fraud, and routine escrow mechanisms could easily be implemented to protect buyers.
+
+Technology
+Bitcoin uses blockchain technology to maintain a decentralized ledger of all transactions. Each block contains a cryptographic hash of the previous block, a timestamp, and transaction data. The blockchain is maintained by a distributed network of nodes that validate and record transactions.
+
+Proof-of-Work
+The proof-of-work involves scanning for a value that when hashed, such as with SHA-256, the hash begins with a number of zero bits. The average work required is exponential in the number of zero bits required and can be verified by executing a single hash. For our timestamp network, we implement the proof-of-work by incrementing a nonce in the block until a value is found that gives the block's hash the required zero bits.
+
+Network
+The steps to run the network are as follows:
+1) New transactions are broadcast to all nodes.
+2) Each node collects new transactions into a block.
+3) Each node works on finding a difficult proof-of-work for its block.
+4) When a node finds a proof-of-work, it broadcasts the block to all nodes.
+5) Nodes accept the block only if all transactions in it are valid and not already spent.
+6) Nodes express their acceptance of the block by working on creating the next block in the chain.
+
+Tokenomics
+Bitcoin has a fixed supply of 21 million coins. New bitcoins are created through mining rewards, which decrease over time through a process called halving. This occurs approximately every four years, reducing the block reward by 50%. This deflationary model ensures scarcity and encourages long-term holding.
+
+The initial block reward was 50 BTC per block. After the first halving in 2012, it became 25 BTC. The second halving in 2016 reduced it to 12.5 BTC, and the third in 2020 brought it down to 6.25 BTC.
+
+Team and Development
+Bitcoin was created by Satoshi Nakamoto, whose identity remains unknown. The project is now maintained by a global community of developers who contribute to the Bitcoin Core software. The development process is transparent and open-source, with all code available on GitHub for public review.
+
+The Bitcoin Core development team includes experienced cryptographers, software engineers, and security experts who continuously work on improving the protocol's security, scalability, and functionality.
+
+Roadmap
+Phase 1 (2009-2012): Network launch and initial adoption
+- Genesis block created on January 3, 2009
+- First peer-to-peer transaction completed
+- Mining difficulty adjustments implemented
+- First halving event
+
+Phase 2 (2013-2016): Growing ecosystem
+- Merchant adoption increases
+- Development of payment processors
+- Lightning Network proposal
+- Second halving event
+
+Phase 3 (2017-2020): Mainstream recognition
+- Segregated Witness (SegWit) activation
+- Lightning Network deployment
+- Institutional investment begins
+- Third halving event
+
+Phase 4 (2021-2024): Continued development
+- Taproot upgrade activation
+- Improved privacy features
+- Layer 2 solutions expansion
+- Fourth halving event
+
+Legal and Regulatory Compliance
+Bitcoin operates as a decentralized network without a central authority. Users are responsible for complying with their local laws and regulations regarding cryptocurrency ownership and trading. The Bitcoin protocol itself is neutral and does not enforce any specific regulatory framework.
+
+Many jurisdictions have developed regulatory frameworks for cryptocurrency, and users should consult with legal and tax professionals to ensure compliance with applicable laws.
+
+Community and Partnerships
+Bitcoin has the largest and most active cryptocurrency community in the world. The network is supported by:
+
+- Thousands of full nodes operated by volunteers globally
+- Major exchanges listing BTC trading pairs
+- Payment processors enabling merchant adoption
+- Educational institutions offering blockchain courses
+- Open-source developers contributing to the codebase
+- Mining pools securing the network
+
+Security and Transparency
+All Bitcoin transactions are recorded on the public blockchain, providing complete transparency. The network's security is maintained through:
+
+- Proof-of-Work consensus mechanism
+- Distributed network of nodes
+- Cryptographic signatures
+- Open-source code review
+- Bug bounty programs
+- Regular security audits
+
+Conclusion
+Bitcoin represents a breakthrough in decentralized digital currency, offering a trustless system for peer-to-peer transactions. The combination of blockchain technology, proof-of-work consensus, and a fixed supply creates a robust and secure monetary network that operates without central control.
+
+References and Resources
+- Bitcoin.org - Official website
+- GitHub repository: github.com/bitcoin/bitcoin
+- Bitcoin Improvement Proposals (BIPs)
+- Bitcoin Core documentation
+- Community forums and discussion boards

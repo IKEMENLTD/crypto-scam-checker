@@ -180,11 +180,6 @@ async function handleFileUpload(file) {
         const text = await extractTextFromPDF(file);
         uploadedText = text;
 
-        // デバッグ用：抽出されたテキストの最初の500文字をコンソールに出力
-        console.log('=== PDF抽出テキスト（最初の500文字） ===');
-        console.log(text.substring(0, 500));
-        console.log('=== テキスト全体の長さ ===', text.length);
-
         // 成功メッセージを表示
         fileInfo.innerHTML = `
             <div>
@@ -251,8 +246,6 @@ async function analyzeWhitepaper(text) {
                 throw new Error(`APIエラー (${response.status}): レスポンスのパースに失敗しました`);
             }
 
-            console.error('API Error Response:', errorData);
-            console.error('API Error Response (JSON):', JSON.stringify(errorData, null, 2));
 
             // レート制限エラーの特別な処理
             if (response.status === 429) {
@@ -277,12 +270,6 @@ async function analyzeWhitepaper(text) {
         displayResults(analysisResult);
 
     } catch (error) {
-        // 詳細なエラー情報をコンソールに出力
-        console.error('=== Analysis Error Details ===');
-        console.error('Error message:', error.message);
-        console.error('Error object:', error);
-        console.error('Error stack:', error.stack);
-
         // エラーメッセージを改行を保持して表示
         const errorMessage = error.message.replace(/\\n/g, '\n');
         alert(errorMessage);
