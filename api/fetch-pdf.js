@@ -1,4 +1,5 @@
 const { checkRateLimit, getClientIP, setSecurityHeaders, sendErrorResponse, logRequest } = require('./_middleware.js');
+const pdfParse = require('pdf-parse');
 
 module.exports = async function handler(req, res) {
     // セキュリティヘッダーを設定
@@ -75,30 +76,24 @@ module.exports = async function handler(req, res) {
         if (contentType.includes('application/pdf') || targetUrl.pathname.toLowerCase().endsWith('.pdf')) {
             try {
                 const buffer = await fetchResponse.arrayBuffer();
+                const bufferData = Buffer.from(buffer);
 
-                // PDF.jsを使用してテキスト抽出（ブラウザ環境用）
-                // サーバーサイドではpdf-parseを使用する必要がありますが、
-                // Vercelのサーバーレス環境では外部ライブラリのインストールが必要
-                // 簡易的な実装として、PDFのバイナリから可視テキストを抽出
-                const uint8Array = new Uint8Array(buffer);
-                const textDecoder = new TextDecoder('utf-8');
-                const rawText = textDecoder.decode(uint8Array);
+                // pdf-parseを使用してPDFからテキストを抽出
+                const pdfData = await pdfParse(bufferData);
 
-                // PDFの生テキストから可読部分を抽出（簡易版）
-                const textMatches = rawText.match(/[A-Za-z0-9\s\.\,\;\:\!\?\-\'\"]+/g);
-                if (textMatches && textMatches.length > 0) {
-                    extractedText = textMatches
-                        .filter(text => text.trim().length > 10) // 10文字以上のテキストのみ
-                        .join(' ')
-                        .substring(0, 50000); // 最大50000文字
-                }
+                extractedText = pdfData.text
+                    .replace(/\s+/g, ' ') // 複数の空白を1つに
+                    .trim()
+                    .substring(0, 50000); // 最大50000文字
 
                 if (extractedText.length < 100) {
                     return sendErrorResponse(res, 400, 'PDFからテキストを抽出できませんでした。PDFファイルをダウンロードして、テキストをコピー＆ペーストしてください。');
                 }
+
+                logRequest(req, 200, `PDF parsed successfully: ${extractedText.length} characters`);
             } catch (error) {
                 console.error('PDF extraction error:', error);
-                return sendErrorResponse(res, 500, 'PDFの処理中にエラーが発生しました');
+                return sendErrorResponse(res, 500, `PDFの処理中にエラーが発生しました: ${error.message}`);
             }
         }
         // HTMLの場合
