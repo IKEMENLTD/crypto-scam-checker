@@ -11,8 +11,6 @@ const fileInput = document.getElementById('file-input');
 const fileSelectBtn = document.getElementById('file-select-btn');
 const uploadArea = document.getElementById('upload-area');
 const fileInfo = document.getElementById('file-info');
-const urlInput = document.getElementById('url-input');
-const urlFetchBtn = document.getElementById('url-fetch-btn');
 const textInput = document.getElementById('text-input');
 const analyzeBtn = document.getElementById('analyze-btn');
 const loading = document.getElementById('loading');
@@ -79,49 +77,6 @@ uploadArea.addEventListener('drop', async (e) => {
         await handleFileUpload(file);
     } else {
         alert('PDFファイルのみアップロード可能です');
-    }
-});
-
-// URL取得ボタン
-urlFetchBtn.addEventListener('click', async () => {
-    const url = urlInput.value.trim();
-    if (!url) {
-        alert('URLを入力してください');
-        return;
-    }
-
-    try {
-        urlFetchBtn.disabled = true;
-        urlFetchBtn.textContent = '取得中...';
-
-        // バックエンドAPIを呼び出してURLからテキストを取得
-        const response = await fetch('/api/fetch-pdf', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'URLからの取得に失敗しました');
-        }
-
-        if (data.success && data.text) {
-            uploadedText = data.text;
-            alert(`URLからテキストを取得しました（${data.length}文字）`);
-            updateAnalyzeButton();
-        } else {
-            throw new Error('テキストの取得に失敗しました');
-        }
-    } catch (error) {
-        alert(error.message || 'URLからの取得に失敗しました。直接テキストを貼り付けてください。');
-        console.error(error);
-    } finally {
-        urlFetchBtn.disabled = false;
-        urlFetchBtn.textContent = 'URLから取得';
     }
 });
 
