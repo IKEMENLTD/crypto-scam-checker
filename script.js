@@ -149,30 +149,81 @@ analyzeBtn.addEventListener('click', async () => {
     await analyzeWhitepaper(textToAnalyze);
 });
 
+// PDFからテキストを抽出する関数
+async function extractTextFromPDF(file) {
+    return new Promise((resolve, reject) => {
+        const fileReader = new FileReader();
+
+        fileReader.onload = async function() {
+            try {
+                const typedArray = new Uint8Array(this.result);
+
+                // PDF.jsの設定
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                // PDFドキュメントを読み込み
+                const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                let fullText = '';
+
+                // 全ページのテキストを抽出
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
+                }
+
+                resolve(fullText.trim());
+            } catch (error) {
+                reject(error);
+            }
+        };
+
+        fileReader.onerror = function() {
+            reject(new Error('ファイルの読み込みに失敗しました'));
+        };
+
+        fileReader.readAsArrayBuffer(file);
+    });
+}
+
 // ファイルアップロード処理
 async function handleFileUpload(file) {
     try {
-        // PDF.jsを使用してPDFからテキストを抽出
-        // 注: PDF.jsはCDNから読み込む必要があります
-        alert('PDF解析機能は現在開発中です。代わりにテキスト入力タブからテキストを貼り付けてください。');
-
-        // 将来的な実装のプレースホルダー
-        // const text = await extractTextFromPDF(file);
-        // uploadedText = text;
-
+        // ファイル情報を表示
         fileInfo.style.display = 'block';
         fileInfo.innerHTML = `
             <div>
                 <strong>${file.name}</strong>
                 <span style="color: var(--text-secondary);">(${(file.size / 1024).toFixed(2)} KB)</span>
+                <span style="color: var(--primary-color); margin-left: 10px;">📄 解析中...</span>
+            </div>
+        `;
+
+        // PDFからテキストを抽出
+        const text = await extractTextFromPDF(file);
+        uploadedText = text;
+
+        // 成功メッセージを表示
+        fileInfo.innerHTML = `
+            <div>
+                <strong>${file.name}</strong>
+                <span style="color: var(--text-secondary);">(${(file.size / 1024).toFixed(2)} KB)</span>
+                <span style="color: var(--success-color); margin-left: 10px;">✅ 解析完了 (${text.length}文字)</span>
             </div>
             <button class="btn-secondary" onclick="clearFile()">削除</button>
         `;
 
         updateAnalyzeButton();
     } catch (error) {
-        alert('PDFの読み込みに失敗しました');
-        console.error(error);
+        console.error('PDF extraction error:', error);
+        fileInfo.innerHTML = `
+            <div style="color: var(--danger-color);">
+                <strong>❌ エラー:</strong> ${error.message || 'PDFの読み込みに失敗しました'}
+            </div>
+            <button class="btn-secondary" onclick="clearFile()">やり直す</button>
+        `;
+        alert('PDFの読み込みに失敗しました。別のファイルを試すか、テキスト入力を使用してください。');
     }
 }
 
