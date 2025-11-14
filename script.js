@@ -159,6 +159,11 @@ async function handleFileUpload(file) {
         const text = await extractTextFromPDF(file);
         uploadedText = text;
 
+        // デバッグ用：抽出されたテキストの最初の500文字をコンソールに出力
+        console.log('=== PDF抽出テキスト（最初の500文字） ===');
+        console.log(text.substring(0, 500));
+        console.log('=== テキスト全体の長さ ===', text.length);
+
         // 成功メッセージを表示
         fileInfo.innerHTML = `
             <div>
