@@ -124,8 +124,29 @@ async function extractTextFromPDF(file) {
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     const page = await pdf.getPage(pageNum);
                     const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += pageText + '\n';
+
+                    let lastY = null;
+                    let pageText = '';
+
+                    // Y座標を使って改行を検出
+                    textContent.items.forEach((item, index) => {
+                        const currentY = item.transform[5];
+
+                        // 前のアイテムとY座標が5以上離れている場合は改行
+                        if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+                            pageText += '\n';
+                        }
+
+                        // テキストを追加（末尾にスペースがない場合のみスペースを追加）
+                        pageText += item.str;
+                        if (item.str && !item.str.endsWith(' ') && index < textContent.items.length - 1) {
+                            pageText += ' ';
+                        }
+
+                        lastY = currentY;
+                    });
+
+                    fullText += pageText.trim() + '\n\n';
                 }
 
                 resolve(fullText.trim());
