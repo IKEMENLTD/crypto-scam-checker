@@ -97,14 +97,23 @@ module.exports = async function handler(req, res) {
 
     } catch (error) {
         console.error('Analysis error:', error);
+        console.error('Error stack:', error.stack);
         logRequest(req, 500, `Error: ${error.message}`);
 
         // エラーの種類に応じて適切なステータスコードを返す
         if (error.message.includes('API')) {
-            return sendErrorResponse(res, 503, '外部サービスとの通信に失敗しました', error.message);
+            return res.status(503).json({
+                error: '外部サービスとの通信に失敗しました',
+                details: error.message,
+                timestamp: new Date().toISOString()
+            });
         }
 
-        return sendErrorResponse(res, 500, '分析中にエラーが発生しました', error.message);
+        return res.status(500).json({
+            error: '分析中にエラーが発生しました',
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
@@ -173,19 +182,36 @@ ${text}
 
     if (!response.ok) {
         const errorData = await response.json();
+        console.error('Gemini API error:', errorData);
         throw new Error(errorData.error?.message || 'Gemini API呼び出しに失敗しました');
     }
 
     const data = await response.json();
+    console.log('Gemini API response:', JSON.stringify(data).substring(0, 500));
+
+    // レスポンス構造のチェック
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+        console.error('Invalid Gemini API response structure:', data);
+        throw new Error('Gemini APIのレスポンス形式が不正です');
+    }
+
     const resultText = data.candidates[0].content.parts[0].text;
+    console.log('Result text preview:', resultText.substring(0, 300));
 
     // JSONを抽出
     const jsonMatch = resultText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-        throw new Error('分析結果の解析に失敗しました');
+        console.error('No JSON found in result text:', resultText);
+        throw new Error('分析結果の解析に失敗しました。AIがJSON形式で応答しませんでした。');
     }
 
-    const analysisResult = JSON.parse(jsonMatch[0]);
+    let analysisResult;
+    try {
+        analysisResult = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+        console.error('JSON parse error:', parseError, 'JSON string:', jsonMatch[0].substring(0, 200));
+        throw new Error(`JSON解析エラー: ${parseError.message}`);
+    }
 
     // デフォルト値を設定（存在しない場合）
     return {
