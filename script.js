@@ -252,6 +252,7 @@ async function analyzeWhitepaper(text) {
             }
 
             console.error('API Error Response:', errorData);
+            console.error('API Error Response (JSON):', JSON.stringify(errorData, null, 2));
 
             // レート制限エラーの特別な処理
             if (response.status === 429) {
