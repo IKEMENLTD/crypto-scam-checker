@@ -243,7 +243,15 @@ async function analyzeWhitepaper(text) {
         const rateLimitReset = response.headers.get('X-RateLimit-Reset');
 
         if (!response.ok) {
-            const errorData = await response.json();
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (parseError) {
+                console.error('Failed to parse error response:', parseError);
+                throw new Error(`APIエラー (${response.status}): レスポンスのパースに失敗しました`);
+            }
+
+            console.error('API Error Response:', errorData);
 
             // レート制限エラーの特別な処理
             if (response.status === 429) {
@@ -268,6 +276,12 @@ async function analyzeWhitepaper(text) {
         displayResults(analysisResult);
 
     } catch (error) {
+        // 詳細なエラー情報をコンソールに出力
+        console.error('=== Analysis Error Details ===');
+        console.error('Error message:', error.message);
+        console.error('Error object:', error);
+        console.error('Error stack:', error.stack);
+
         // エラーメッセージを改行を保持して表示
         const errorMessage = error.message.replace(/\\n/g, '\n');
         alert(errorMessage);
