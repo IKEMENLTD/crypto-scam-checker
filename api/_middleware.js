@@ -5,16 +5,6 @@
 // 本番環境ではUpstash RedisやVercel KVの使用を推奨
 const rateLimitStore = new Map();
 
-// 古いエントリをクリーンアップ
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, data] of rateLimitStore.entries()) {
-        if (now - data.resetTime > 0) {
-            rateLimitStore.delete(key);
-        }
-    }
-}, 60000); // 1分ごとにクリーンアップ
-
 /**
  * レート制限チェック
  * @param {string} identifier - IP アドレスまたは識別子
@@ -22,7 +12,7 @@ setInterval(() => {
  * @param {number} windowMs - 時間窓（ミリ秒）
  * @returns {Object} - { allowed: boolean, remaining: number, resetTime: number }
  */
-export function checkRateLimit(identifier, maxRequests = 10, windowMs = 60000) {
+function checkRateLimit(identifier, maxRequests = 10, windowMs = 60000) {
     const now = Date.now();
     const key = `rate_${identifier}`;
 
@@ -52,7 +42,7 @@ export function checkRateLimit(identifier, maxRequests = 10, windowMs = 60000) {
 /**
  * IPアドレスを取得
  */
-export function getClientIP(req) {
+function getClientIP(req) {
     return (
         req.headers['x-forwarded-for']?.split(',')[0].trim() ||
         req.headers['x-real-ip'] ||
@@ -64,7 +54,7 @@ export function getClientIP(req) {
 /**
  * 入力検証
  */
-export function validateInput(text) {
+function validateInput(text) {
     const errors = [];
 
     // 必須チェック
@@ -103,7 +93,7 @@ export function validateInput(text) {
 /**
  * セキュリティヘッダーを設定
  */
-export function setSecurityHeaders(res) {
+function setSecurityHeaders(res) {
     // XSS対策
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
@@ -125,7 +115,7 @@ export function setSecurityHeaders(res) {
 /**
  * エラーレスポンスを安全に返す
  */
-export function sendErrorResponse(res, statusCode, message, details = null) {
+function sendErrorResponse(res, statusCode, message, details = null) {
     const response = {
         error: message,
         timestamp: new Date().toISOString()
@@ -142,7 +132,7 @@ export function sendErrorResponse(res, statusCode, message, details = null) {
 /**
  * リクエストログ（簡易版）
  */
-export function logRequest(req, status, message = '') {
+function logRequest(req, status, message = '') {
     const ip = getClientIP(req);
     const timestamp = new Date().toISOString();
     const method = req.method;
@@ -150,3 +140,13 @@ export function logRequest(req, status, message = '') {
 
     console.log(`[${timestamp}] ${ip} ${method} ${url} - ${status} ${message}`);
 }
+
+// CommonJS形式でエクスポート
+module.exports = {
+    checkRateLimit,
+    getClientIP,
+    validateInput,
+    setSecurityHeaders,
+    sendErrorResponse,
+    logRequest
+};

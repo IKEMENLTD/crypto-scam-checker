@@ -1,6 +1,6 @@
-import { checkRateLimit, getClientIP, setSecurityHeaders, sendErrorResponse, logRequest } from './_middleware.js';
+const { checkRateLimit, getClientIP, setSecurityHeaders, sendErrorResponse, logRequest } = require('./_middleware.js');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // セキュリティヘッダーを設定
     setSecurityHeaders(res);
 

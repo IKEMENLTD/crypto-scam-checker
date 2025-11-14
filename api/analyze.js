@@ -1,15 +1,15 @@
 // Vercel サーバーレス関数 - ホワイトペーパー分析API（セキュリティ強化版）
 
-import {
+const {
     checkRateLimit,
     getClientIP,
     validateInput,
     setSecurityHeaders,
     sendErrorResponse,
     logRequest
-} from './_middleware.js';
+} = require('./_middleware.js');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // セキュリティヘッダーを設定
     setSecurityHeaders(res);
 
