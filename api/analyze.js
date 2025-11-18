@@ -165,7 +165,7 @@ ${text}
 専門用語は避け、「トークン配分」「今後の計画」「法律を守る姿勢」など平易な言葉を使ってください。`;
 
     const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
             method: 'POST',
             headers: {
