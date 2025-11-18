@@ -282,14 +282,25 @@ async function analyzeWhitepaper(text) {
 
 // 結果を表示
 function displayResults(analysis) {
-    const riskScoreClass = analysis.riskLevel === 'high' ? 'score-high' :
-                          analysis.riskLevel === 'medium' ? 'score-medium' : 'score-low';
+    // スコアから自動的にリスクレベルを判定（AIの値に依存しない）
+    const score = analysis.riskScore;
+    let actualRiskLevel;
+    if (score >= 71) {
+        actualRiskLevel = 'high';
+    } else if (score >= 31) {
+        actualRiskLevel = 'medium';
+    } else {
+        actualRiskLevel = 'low';
+    }
 
-    const riskLabelText = analysis.riskLevel === 'high' ? '⚠️ 高リスク - 投資非推奨' :
-                         analysis.riskLevel === 'medium' ? '⚡ 中リスク - 要注意' : '✅ 低リスク';
+    const riskScoreClass = actualRiskLevel === 'high' ? 'score-high' :
+                          actualRiskLevel === 'medium' ? 'score-medium' : 'score-low';
 
-    const riskLabelClass = analysis.riskLevel === 'high' ? 'score-high' :
-                          analysis.riskLevel === 'medium' ? 'score-medium' : 'score-low';
+    const riskLabelText = actualRiskLevel === 'high' ? '⚠️ 高リスク - 投資非推奨' :
+                         actualRiskLevel === 'medium' ? '⚡ 中リスク - 要注意' : '✅ 低リスク';
+
+    const riskLabelClass = actualRiskLevel === 'high' ? 'score-high' :
+                          actualRiskLevel === 'medium' ? 'score-medium' : 'score-low';
 
     let html = `
         <div class="risk-score">
