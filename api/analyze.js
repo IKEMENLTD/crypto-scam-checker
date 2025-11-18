@@ -178,7 +178,7 @@ ${text}
                     }]
                 }],
                 generationConfig: {
-                    temperature: 0.7,
+                    temperature: 0.2,  // 評価の安定性向上のため0.7から0.2に変更
                     maxOutputTokens: 8192,
                 }
             })
