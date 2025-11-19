@@ -1246,9 +1246,10 @@ textarea::placeholder {
     }
 
     .tab-btn {
-        padding: 9px 18px;
-        font-size: 0.88rem;
+        padding: 10px 12px;
+        font-size: 0.82rem;
         text-align: center;
+        white-space: nowrap;  /* 改行を防ぐ */
     }
 
     .upload-area {
