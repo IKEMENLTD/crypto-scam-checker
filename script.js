@@ -257,6 +257,7 @@ function updateAnalyzeButton() {
 // ホワイトペーパーを分析
 async function analyzeWhitepaper(text) {
     try {
+        // ボタンを無効化
         analyzeBtn.disabled = true;
         loading.style.display = 'block';
         results.style.display = 'none';
@@ -312,6 +313,7 @@ async function analyzeWhitepaper(text) {
         alert(errorMessage);
         console.error('Analysis error:', error);
     } finally {
+        // ボタンをリセット
         analyzeBtn.disabled = false;
         loading.style.display = 'none';
     }
