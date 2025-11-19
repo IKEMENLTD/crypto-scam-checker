@@ -1161,9 +1161,10 @@ textarea::placeholder {
 
     .checkbox-container {
         margin-bottom: 8px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     .checkbox-container input[type="checkbox"] {
@@ -1520,6 +1521,7 @@ textarea::placeholder {
         margin-bottom: 10px;
         flex-direction: row;
         align-items: center;
+        justify-content: center;
         gap: 10px;
     }
 
