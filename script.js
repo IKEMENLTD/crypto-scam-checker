@@ -262,13 +262,16 @@ async function analyzeWhitepaper(text) {
         loading.style.display = 'block';
         results.style.display = 'none';
 
+        // テキストをサニタイズ（制御文字を削除）
+        const sanitizedText = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
         // バックエンドAPIを呼び出し
         const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ text })
+            body: JSON.stringify({ text: sanitizedText })
         });
 
         // レート制限ヘッダーを取得
