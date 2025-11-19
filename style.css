@@ -1347,14 +1347,22 @@ textarea::placeholder {
     }
 
     .export-buttons {
-        flex-direction: column;
-        gap: 12px;
+        flex-direction: row;
+        gap: 8px;
     }
 
     .btn-export {
-        padding: 12px 20px;
-        font-size: 0.9rem;
+        padding: 10px 8px;
+        font-size: 0.75rem;
         justify-content: center;
+        flex: 1;
+        white-space: nowrap;
+        letter-spacing: 0;
+    }
+
+    .btn-export svg {
+        width: 14px;
+        height: 14px;
     }
 
     /* History Panel */
@@ -1437,6 +1445,16 @@ textarea::placeholder {
     .risk-label {
         font-size: 1.3rem;
     }
+
+    .btn-export {
+        padding: 11px 12px;
+        font-size: 0.8rem;
+    }
+
+    .btn-export svg {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 /* Medium Devices (481px - 768px) */
@@ -1500,6 +1518,14 @@ textarea::placeholder {
 
     .tab-buttons {
         flex-direction: row;
+    }
+
+    .export-buttons {
+        flex-direction: row;
+    }
+
+    .btn-export {
+        flex: 1;
     }
 
     .history-panel {
