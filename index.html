@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>暗号資産詐欺チェッカー - 免責事項</title>
+    <meta name="description" content="ホワイトペーパーを分析して暗号資産詐欺のリスクを評価するWebツール。AI駆動の高度な分析で投資リスクを判定します。">
+
+    <!-- Preconnect to CDN for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+
     <link rel="stylesheet" href="style.css">
+
     <!-- PDF.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    <!-- jsPDF Library for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -70,8 +79,19 @@
 
         <div id="checker-screen" class="screen">
             <header>
-                <h1>暗号資産詐欺チェッカー</h1>
-                <p>ホワイトペーパーを分析して詐欺リスクを評価します</p>
+                <div class="header-content">
+                    <div>
+                        <h1>暗号資産詐欺チェッカー</h1>
+                        <p>ホワイトペーパーを分析して詐欺リスクを評価します</p>
+                    </div>
+                    <button class="btn-history-toggle" onclick="toggleHistoryPanel()" title="分析履歴">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>履歴</span>
+                    </button>
+                </div>
             </header>
 
             <div class="main-content">
@@ -116,6 +136,38 @@
                 </div>
 
                 <div id="results" class="results" style="display: none;"></div>
+            </div>
+
+            <!-- 履歴パネル -->
+            <div id="history-panel" class="history-panel">
+                <div class="history-header">
+                    <h2>📜 分析履歴</h2>
+                    <div class="history-header-actions">
+                        <button class="btn-compare-toggle" onclick="toggleComparisonMode()" title="比較モード">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </button>
+                        <button class="btn-clear-history" onclick="clearAllHistory()" title="全削除">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-close-history" onclick="toggleHistoryPanel()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="history-content" id="history-list">
+                    <p class="history-empty">まだ分析履歴がありません</p>
+                </div>
             </div>
         </div>
     </div>

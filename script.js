@@ -1,6 +1,12 @@
 // グローバル変数
 let currentTab = 'pdf';
 let uploadedText = '';
+let currentAnalysis = null; // 現在の分析結果を保持
+let currentInputName = ''; // 入力されたファイル名またはテキストの識別子
+let analysisHistory = []; // 分析履歴
+const MAX_HISTORY_SIZE = 20; // 最大履歴保存数
+let comparisonMode = false; // 比較モード
+let selectedForComparison = []; // 比較対象として選択された履歴のインデックス
 
 // DOM要素
 const disclaimerScreen = document.getElementById('disclaimer-screen');
@@ -15,6 +21,11 @@ const textInput = document.getElementById('text-input');
 const analyzeBtn = document.getElementById('analyze-btn');
 const loading = document.getElementById('loading');
 const results = document.getElementById('results');
+
+// ページ読み込み時に履歴を読み込み
+document.addEventListener('DOMContentLoaded', () => {
+    loadHistory();
+});
 
 // 免責事項の同意チェック
 consentCheckbox.addEventListener('change', (e) => {
@@ -92,6 +103,10 @@ analyzeBtn.addEventListener('click', async () => {
 
     if (currentTab === 'text') {
         textToAnalyze = textInput.value.trim();
+        // テキスト入力の場合はファイル名を設定
+        if (!currentInputName || currentInputName.endsWith('.pdf')) {
+            currentInputName = 'テキスト入力_' + new Date().toLocaleDateString('ja-JP').replace(/\//g, '-');
+        }
     } else {
         textToAnalyze = uploadedText;
     }
@@ -166,6 +181,9 @@ async function extractTextFromPDF(file) {
 // ファイルアップロード処理
 async function handleFileUpload(file) {
     try {
+        // ファイル名を保存
+        currentInputName = file.name;
+
         // ファイル情報を表示
         fileInfo.style.display = 'block';
         fileInfo.innerHTML = `
@@ -282,6 +300,12 @@ async function analyzeWhitepaper(text) {
 
 // 結果を表示
 function displayResults(analysis) {
+    // 現在の分析結果を保存
+    currentAnalysis = analysis;
+
+    // 履歴に保存
+    saveToHistory(analysis);
+
     // スコアから自動的にリスクレベルを判定（AIの値に依存しない）
     const score = analysis.riskScore;
     let actualRiskLevel;
@@ -366,6 +390,29 @@ function displayResults(analysis) {
     }
 
     html += `
+        <div class="export-section">
+            <h3>📥 分析結果をエクスポート</h3>
+            <div class="export-buttons">
+                <button class="btn-export btn-csv" onclick="exportToCSV()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    CSV形式でダウンロード
+                </button>
+                <button class="btn-export btn-pdf" onclick="exportToPDF()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    PDF形式でダウンロード
+                </button>
+            </div>
+        </div>
+
         <div style="margin-top: 30px; padding: 20px; background: var(--bg-color); border-radius: 8px; text-align: center;">
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 10px 0;">
                 ⚠️ この分析結果は参考情報です。投資判断は必ず専門家に相談の上、ご自身の責任で行ってください。
@@ -381,4 +428,611 @@ function displayResults(analysis) {
 
     // 結果までスクロール
     results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// CSV形式でエクスポート
+function exportToCSV() {
+    if (!currentAnalysis) {
+        alert('エクスポートする分析結果がありません');
+        return;
+    }
+
+    const analysis = currentAnalysis;
+    const timestamp = new Date().toLocaleString('ja-JP');
+    const fileName = currentInputName || 'ホワイトペーパー';
+
+    // CSVヘッダー
+    let csv = '\uFEFF'; // BOM for Excel UTF-8 support
+    csv += '暗号資産詐欺チェッカー - 分析結果\n';
+    csv += `分析日時,${timestamp}\n`;
+    csv += `ファイル名,${fileName}\n`;
+    csv += '\n';
+
+    // 基本情報
+    csv += '項目,値\n';
+    csv += `リスクスコア,${analysis.riskScore}/100\n`;
+    csv += `リスクレベル,${analysis.riskLevel}\n`;
+    csv += '\n';
+
+    // 総合分析
+    csv += '総合分析\n';
+    csv += `"${analysis.summary.replace(/"/g, '""')}"\n`;
+    csv += '\n';
+
+    // 重大な危険信号
+    if (analysis.redFlags && analysis.redFlags.length > 0) {
+        csv += '重大な危険信号\n';
+        analysis.redFlags.forEach((flag, index) => {
+            csv += `${index + 1},"${flag.replace(/"/g, '""')}"\n`;
+        });
+        csv += '\n';
+    }
+
+    // 注意すべき点
+    if (analysis.warnings && analysis.warnings.length > 0) {
+        csv += '注意すべき点\n';
+        analysis.warnings.forEach((warning, index) => {
+            csv += `${index + 1},"${warning.replace(/"/g, '""')}"\n`;
+        });
+        csv += '\n';
+    }
+
+    // ポジティブな点
+    if (analysis.positivePoints && analysis.positivePoints.length > 0) {
+        csv += 'ポジティブな点\n';
+        analysis.positivePoints.forEach((point, index) => {
+            csv += `${index + 1},"${point.replace(/"/g, '""')}"\n`;
+        });
+        csv += '\n';
+    }
+
+    // 推奨アクション
+    if (analysis.recommendations && analysis.recommendations.length > 0) {
+        csv += '推奨アクション\n';
+        analysis.recommendations.forEach((rec, index) => {
+            csv += `${index + 1},"${rec.replace(/"/g, '""')}"\n`;
+        });
+        csv += '\n';
+    }
+
+    // 免責事項
+    csv += '\n免責事項\n';
+    csv += '"この分析結果は参考情報です。投資判断は必ず専門家に相談の上、ご自身の責任で行ってください。"\n';
+
+    // ダウンロード
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const safeFileName = fileName.replace(/[^a-zA-Z0-9_\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '_');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `暗号資産詐欺分析_${safeFileName}_${Date.now()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// PDF形式でエクスポート
+function exportToPDF() {
+    if (!currentAnalysis) {
+        alert('エクスポートする分析結果がありません');
+        return;
+    }
+
+    const analysis = currentAnalysis;
+    const timestamp = new Date().toLocaleString('ja-JP');
+    const fileName = currentInputName || 'ホワイトペーパー';
+
+    // jsPDFインスタンスを作成
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+    });
+
+    // 日本語フォントの代わりに、テキストを画像化するか、英数字のみ使用
+    // ここでは簡易的に英数字で出力（日本語は別途処理が必要）
+
+    let y = 20;
+    const lineHeight = 7;
+    const margin = 20;
+    const pageWidth = 210 - (margin * 2);
+
+    // タイトル
+    doc.setFontSize(18);
+    doc.text('Crypto Scam Analysis Report', margin, y);
+    y += lineHeight * 2;
+
+    // 基本情報
+    doc.setFontSize(12);
+    doc.text(`Analysis Date: ${timestamp}`, margin, y);
+    y += lineHeight;
+    doc.text(`File Name: ${fileName}`, margin, y);
+    y += lineHeight * 2;
+
+    // リスクスコア
+    doc.setFontSize(14);
+    doc.text('Risk Score', margin, y);
+    y += lineHeight;
+    doc.setFontSize(24);
+    doc.text(`${analysis.riskScore}/100`, margin, y);
+    y += lineHeight * 2;
+
+    doc.setFontSize(12);
+    doc.text(`Risk Level: ${analysis.riskLevel}`, margin, y);
+    y += lineHeight * 2;
+
+    // 総合分析
+    doc.setFontSize(14);
+    doc.text('Summary', margin, y);
+    y += lineHeight;
+    doc.setFontSize(10);
+
+    // テキストを折り返し
+    const summaryLines = doc.splitTextToSize(analysis.summary, pageWidth);
+    summaryLines.forEach(line => {
+        if (y > 270) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.text(line, margin, y);
+        y += lineHeight;
+    });
+    y += lineHeight;
+
+    // 危険信号
+    if (analysis.redFlags && analysis.redFlags.length > 0) {
+        if (y > 250) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(14);
+        doc.text('Red Flags', margin, y);
+        y += lineHeight;
+        doc.setFontSize(10);
+
+        analysis.redFlags.forEach((flag, index) => {
+            const flagLines = doc.splitTextToSize(`${index + 1}. ${flag}`, pageWidth - 10);
+            flagLines.forEach(line => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(line, margin + 5, y);
+                y += lineHeight;
+            });
+        });
+        y += lineHeight;
+    }
+
+    // 注意点
+    if (analysis.warnings && analysis.warnings.length > 0) {
+        if (y > 250) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(14);
+        doc.text('Warnings', margin, y);
+        y += lineHeight;
+        doc.setFontSize(10);
+
+        analysis.warnings.forEach((warning, index) => {
+            const warningLines = doc.splitTextToSize(`${index + 1}. ${warning}`, pageWidth - 10);
+            warningLines.forEach(line => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(line, margin + 5, y);
+                y += lineHeight;
+            });
+        });
+        y += lineHeight;
+    }
+
+    // ポジティブな点
+    if (analysis.positivePoints && analysis.positivePoints.length > 0) {
+        if (y > 250) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(14);
+        doc.text('Positive Points', margin, y);
+        y += lineHeight;
+        doc.setFontSize(10);
+
+        analysis.positivePoints.forEach((point, index) => {
+            const pointLines = doc.splitTextToSize(`${index + 1}. ${point}`, pageWidth - 10);
+            pointLines.forEach(line => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(line, margin + 5, y);
+                y += lineHeight;
+            });
+        });
+        y += lineHeight;
+    }
+
+    // 推奨アクション
+    if (analysis.recommendations && analysis.recommendations.length > 0) {
+        if (y > 250) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(14);
+        doc.text('Recommendations', margin, y);
+        y += lineHeight;
+        doc.setFontSize(10);
+
+        analysis.recommendations.forEach((rec, index) => {
+            const recLines = doc.splitTextToSize(`${index + 1}. ${rec}`, pageWidth - 10);
+            recLines.forEach(line => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(line, margin + 5, y);
+                y += lineHeight;
+            });
+        });
+    }
+
+    // 免責事項（最終ページ）
+    if (y > 250) {
+        doc.addPage();
+        y = 20;
+    }
+    y += lineHeight * 2;
+    doc.setFontSize(8);
+    doc.text('Disclaimer: This analysis is for reference only.', margin, y);
+    y += lineHeight;
+    doc.text('Please consult with experts before making investment decisions.', margin, y);
+
+    // ダウンロード
+    const safeFileName = fileName.replace(/[^a-zA-Z0-9_\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '_');
+    doc.save(`crypto_scam_analysis_${safeFileName}_${Date.now()}.pdf`);
+}
+
+// ========================================
+// 履歴管理機能
+// ========================================
+
+// 履歴を読み込み
+function loadHistory() {
+    try {
+        const stored = localStorage.getItem('analysisHistory');
+        if (stored) {
+            analysisHistory = JSON.parse(stored);
+        }
+    } catch (error) {
+        console.error('履歴の読み込みに失敗:', error);
+        analysisHistory = [];
+    }
+}
+
+// 履歴に保存
+function saveToHistory(analysis) {
+    const historyItem = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        fileName: currentInputName || 'ホワイトペーパー',
+        analysis: analysis
+    };
+
+    // 履歴の先頭に追加
+    analysisHistory.unshift(historyItem);
+
+    // 最大数を超えたら古いものを削除
+    if (analysisHistory.length > MAX_HISTORY_SIZE) {
+        analysisHistory = analysisHistory.slice(0, MAX_HISTORY_SIZE);
+    }
+
+    // localStorageに保存
+    try {
+        localStorage.setItem('analysisHistory', JSON.stringify(analysisHistory));
+    } catch (error) {
+        console.error('履歴の保存に失敗:', error);
+        // ストレージが満杯の場合は古い履歴を削除
+        if (error.name === 'QuotaExceededError') {
+            analysisHistory = analysisHistory.slice(0, 10);
+            try {
+                localStorage.setItem('analysisHistory', JSON.stringify(analysisHistory));
+            } catch (e) {
+                console.error('履歴の保存に再度失敗:', e);
+            }
+        }
+    }
+
+    // 履歴UIを更新
+    updateHistoryUI();
+}
+
+// 履歴UIを更新
+function updateHistoryUI() {
+    const historyContainer = document.getElementById('history-list');
+    if (!historyContainer) return;
+
+    if (analysisHistory.length === 0) {
+        historyContainer.innerHTML = `
+            <p class="history-empty">まだ分析履歴がありません</p>
+        `;
+        return;
+    }
+
+    let html = '';
+
+    // 比較モードの場合、ヘッダーを追加
+    if (comparisonMode) {
+        html += `
+            <div class="comparison-mode-header">
+                <p>📊 比較する分析結果を選択してください（2〜3件）</p>
+                <div class="comparison-mode-actions">
+                    <button class="btn-comparison-execute" onclick="executeComparison()" ${selectedForComparison.length < 2 ? 'disabled' : ''}>
+                        比較する (${selectedForComparison.length}件選択中)
+                    </button>
+                    <button class="btn-comparison-cancel" onclick="toggleComparisonMode()">
+                        キャンセル
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    analysisHistory.forEach((item, index) => {
+        const date = new Date(item.timestamp);
+        const dateStr = date.toLocaleString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const riskLevel = item.analysis.riskScore >= 71 ? 'high' :
+                         item.analysis.riskScore >= 31 ? 'medium' : 'low';
+        const riskLabel = riskLevel === 'high' ? '⚠️ 高リスク' :
+                         riskLevel === 'medium' ? '⚡ 中リスク' : '✅ 低リスク';
+        const riskClass = `score-${riskLevel}`;
+
+        const isSelected = selectedForComparison.includes(index);
+
+        html += `
+            <div class="history-item ${isSelected ? 'selected' : ''}" data-index="${index}" ${comparisonMode ? `onclick="toggleComparisonSelection(${index})"` : ''} style="${comparisonMode ? 'cursor: pointer;' : ''}">
+                ${comparisonMode ? `
+                    <div class="history-checkbox">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleComparisonSelection(${index})">
+                    </div>
+                ` : ''}
+                <div class="history-info">
+                    <div class="history-title">${item.fileName}</div>
+                    <div class="history-date">${dateStr}</div>
+                </div>
+                <div class="history-score">
+                    <span class="history-score-value ${riskClass}">${item.analysis.riskScore}</span>
+                    <span class="history-risk-label">${riskLabel}</span>
+                </div>
+                ${!comparisonMode ? `
+                    <div class="history-actions">
+                        <button class="btn-history-view" onclick="viewHistory(${index})" title="表示">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                        <button class="btn-history-delete" onclick="deleteHistory(${index})" title="削除">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    });
+
+    historyContainer.innerHTML = html;
+}
+
+// 履歴を表示
+function viewHistory(index) {
+    const item = analysisHistory[index];
+    if (!item) return;
+
+    // 現在の分析結果として設定
+    currentAnalysis = item.analysis;
+    currentInputName = item.fileName;
+
+    // 結果を表示
+    displayResults(item.analysis);
+
+    // 結果までスクロール
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// 履歴を削除
+function deleteHistory(index) {
+    if (!confirm('この履歴を削除しますか？')) return;
+
+    analysisHistory.splice(index, 1);
+
+    try {
+        localStorage.setItem('analysisHistory', JSON.stringify(analysisHistory));
+    } catch (error) {
+        console.error('履歴の削除に失敗:', error);
+    }
+
+    updateHistoryUI();
+}
+
+// 全履歴を削除
+function clearAllHistory() {
+    if (!confirm('すべての履歴を削除しますか？この操作は取り消せません。')) return;
+
+    analysisHistory = [];
+
+    try {
+        localStorage.removeItem('analysisHistory');
+    } catch (error) {
+        console.error('履歴のクリアに失敗:', error);
+    }
+
+    updateHistoryUI();
+}
+
+// 履歴パネルの表示/非表示を切り替え
+function toggleHistoryPanel() {
+    const panel = document.getElementById('history-panel');
+    if (!panel) return;
+
+    panel.classList.toggle('active');
+    updateHistoryUI();
+}
+
+// ========================================
+// 比較機能
+// ========================================
+
+// 比較モードの切り替え
+function toggleComparisonMode() {
+    comparisonMode = !comparisonMode;
+    selectedForComparison = [];
+    updateHistoryUI();
+}
+
+// 比較対象として選択/解除
+function toggleComparisonSelection(index) {
+    if (!comparisonMode) return;
+
+    const idx = selectedForComparison.indexOf(index);
+    if (idx > -1) {
+        selectedForComparison.splice(idx, 1);
+    } else {
+        if (selectedForComparison.length >= 3) {
+            alert('比較は最大3つまでです');
+            return;
+        }
+        selectedForComparison.push(index);
+    }
+
+    updateHistoryUI();
+}
+
+// 比較を実行
+function executeComparison() {
+    if (selectedForComparison.length < 2) {
+        alert('比較するには最低2つの分析結果を選択してください');
+        return;
+    }
+
+    const items = selectedForComparison.map(index => analysisHistory[index]);
+    displayComparison(items);
+
+    // 比較モードを終了
+    comparisonMode = false;
+    selectedForComparison = [];
+    updateHistoryUI();
+
+    // 履歴パネルを閉じる
+    toggleHistoryPanel();
+}
+
+// 比較画面を表示
+function displayComparison(items) {
+    let html = `
+        <div class="comparison-header">
+            <h2>📊 ホワイトペーパー比較分析</h2>
+            <p>${items.length}件の分析結果を比較しています</p>
+        </div>
+
+        <div class="comparison-grid">
+    `;
+
+    // 各アイテムのカードを表示
+    items.forEach((item, index) => {
+        const analysis = item.analysis;
+        const score = analysis.riskScore;
+        const riskLevel = score >= 71 ? 'high' : score >= 31 ? 'medium' : 'low';
+        const riskLabel = riskLevel === 'high' ? '⚠️ 高リスク' :
+                         riskLevel === 'medium' ? '⚡ 中リスク' : '✅ 低リスク';
+        const riskClass = `score-${riskLevel}`;
+
+        const date = new Date(item.timestamp).toLocaleString('ja-JP', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        html += `
+            <div class="comparison-card">
+                <div class="comparison-card-header">
+                    <h3>${item.fileName}</h3>
+                    <p class="comparison-date">${date}</p>
+                </div>
+
+                <div class="comparison-score">
+                    <div class="score-value ${riskClass}">${score}/100</div>
+                    <div class="risk-label ${riskClass}">${riskLabel}</div>
+                </div>
+
+                <div class="comparison-sections">
+                    ${analysis.summary ? `
+                        <div class="comparison-section">
+                            <h4>📊 総合分析</h4>
+                            <p>${analysis.summary}</p>
+                        </div>
+                    ` : ''}
+
+                    ${analysis.redFlags && analysis.redFlags.length > 0 ? `
+                        <div class="comparison-section">
+                            <h4>🚩 危険信号 (${analysis.redFlags.length}件)</h4>
+                            <ul>
+                                ${analysis.redFlags.slice(0, 3).map(flag => `<li>${flag}</li>`).join('')}
+                                ${analysis.redFlags.length > 3 ? `<li class="more-items">他${analysis.redFlags.length - 3}件...</li>` : ''}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${analysis.warnings && analysis.warnings.length > 0 ? `
+                        <div class="comparison-section">
+                            <h4>⚡ 注意点 (${analysis.warnings.length}件)</h4>
+                            <ul>
+                                ${analysis.warnings.slice(0, 3).map(warning => `<li>${warning}</li>`).join('')}
+                                ${analysis.warnings.length > 3 ? `<li class="more-items">他${analysis.warnings.length - 3}件...</li>` : ''}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${analysis.positivePoints && analysis.positivePoints.length > 0 ? `
+                        <div class="comparison-section">
+                            <h4>✅ ポジティブな点 (${analysis.positivePoints.length}件)</h4>
+                            <ul>
+                                ${analysis.positivePoints.slice(0, 3).map(point => `<li>${point}</li>`).join('')}
+                                ${analysis.positivePoints.length > 3 ? `<li class="more-items">他${analysis.positivePoints.length - 3}件...</li>` : ''}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+        </div>
+
+        <div style="margin-top: 30px; text-align: center;">
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                ⚠️ 比較結果は参考情報です。最終的な投資判断はご自身の責任で行ってください。
+            </p>
+        </div>
+    `;
+
+    results.innerHTML = html;
+    results.style.display = 'block';
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
