@@ -443,11 +443,8 @@ function displayResults(analysis, saveHistory = true, scrollToScore = true) {
         </div>
 
         <div style="margin-top: 30px; padding: 20px; background: var(--bg-color); border-radius: 8px; text-align: center;">
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0 0 10px 0;">
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
                 ⚠️ この分析結果は参考情報です。投資判断は必ず専門家に相談の上、ご自身の責任で行ってください。
-            </p>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0;">
-                ℹ️ 本ツールはAIによる分析を使用しているため、同じドキュメントでも実行ごとに数点程度のスコアのブレが生じる場合があります。
             </p>
         </div>
     `;
