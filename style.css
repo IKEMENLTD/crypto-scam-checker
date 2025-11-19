@@ -441,6 +441,8 @@ header p {
 
 .tab-buttons {
     display: flex;
+    justify-content: center;  /* 中央配置 */
+    align-items: center;      /* 垂直方向も中央 */
     gap: 15px;
     margin-bottom: 30px;
     border-bottom: 2px solid rgba(255, 0, 51, 0.3);
@@ -1239,6 +1241,7 @@ textarea::placeholder {
     .tab-buttons {
         gap: 6px;
         flex-direction: column;
+        align-items: center;  /* モバイルでも中央配置 */
         margin-bottom: 12px;
     }
 
