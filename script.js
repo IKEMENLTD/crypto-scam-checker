@@ -357,6 +357,9 @@ function displayResults(analysis, saveHistory = true, scrollToScore = true) {
             <h3>詐欺リスクスコア</h3>
             <div class="score-value ${riskScoreClass}">${analysis.riskScore}/100</div>
             <div class="risk-label ${riskLabelClass}">${riskLabelText}</div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 15px 0 0 0; line-height: 1.6;">
+                ℹ️ 本ツールはAIによる分析を使用しているため、同じドキュメントでも実行ごとに数点程度のスコアのブレが生じる場合があります。
+            </p>
         </div>
 
         <div class="analysis-section">
