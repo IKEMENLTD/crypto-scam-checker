@@ -73,14 +73,108 @@
                         <li>余剰資金の範囲内で投資を行ってください</li>
                         <li>定期的に投資ポートフォリオを見直してください</li>
                     </ul>
+
+                    <h3>個人情報の取り扱い</h3>
+                    <ol>
+                        <li><strong>収集する情報：</strong> 年齢範囲（必須）、性別（任意）、メールアドレス（必須）を収集します。</li>
+
+                        <li><strong>利用目的：</strong> 収集した情報は、ユーザー統計の作成、サービス改善、重要なお知らせの送信にのみ使用します。</li>
+
+                        <li><strong>保存方法：</strong> 入力された情報は、お使いのブラウザのローカルストレージに保存されるとともに、統計管理のためGoogle Sheetsに送信されます。</li>
+
+                        <li><strong>第三者への提供：</strong> 収集した個人情報を第三者に提供・販売することは一切ありません。データはサービス運営者のみが閲覧できます。</li>
+
+                        <li><strong>削除：</strong> ブラウザのキャッシュをクリアすることで、ローカルストレージの情報を削除できます。サーバー側のデータ削除をご希望の場合は、お問い合わせください。</li>
+                    </ol>
                 </div>
 
                 <div class="consent-box">
                     <label class="checkbox-container">
                         <input type="checkbox" id="consent-checkbox">
-                        <span class="consent-text">上記の免責事項と利用規約を読み、理解し、同意します</span>
+                        <span class="consent-text">上記の免責事項、利用規約、個人情報の取り扱いを読み、理解し、同意します</span>
                     </label>
-                    <button id="start-button" class="btn-primary" disabled>ツールを使用開始</button>
+                    <button id="start-button" class="btn-primary" disabled>次へ進む</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="registration-screen" class="screen">
+            <div class="registration-content">
+                <h1>ユーザー情報の登録</h1>
+                <p class="subtitle">サービス改善のため、簡単な情報をご入力ください</p>
+
+                <div class="registration-form">
+                    <div class="form-group">
+                        <label for="age-select">
+                            <svg class="form-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            年齢範囲 <span class="required">必須</span>
+                        </label>
+                        <select id="age-select" required>
+                            <option value="">選択してください</option>
+                            <option value="10歳以下">10歳以下</option>
+                            <option value="10-20">10-20歳</option>
+                            <option value="20-30">20-30歳</option>
+                            <option value="30-40">30-40歳</option>
+                            <option value="40-50">40-50歳</option>
+                            <option value="50-60">50-60歳</option>
+                            <option value="60-70">60-70歳</option>
+                            <option value="70歳以上">70歳以上</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <svg class="form-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            性別 <span class="optional">任意</span>
+                        </label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="gender" value="male">
+                                <span>男性</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gender" value="female">
+                                <span>女性</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gender" value="other">
+                                <span>その他</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gender" value="no-answer" checked>
+                                <span>回答しない</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email-input">
+                            <svg class="form-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            メールアドレス <span class="required">必須</span>
+                        </label>
+                        <input type="email" id="email-input" placeholder="example@example.com" required>
+                    </div>
+
+                    <div class="privacy-reminder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <p>入力された情報は、サービス改善の目的でのみ使用します。</p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button id="register-button" class="btn-primary btn-large" disabled>登録して始める</button>
+                    </div>
                 </div>
             </div>
         </div>

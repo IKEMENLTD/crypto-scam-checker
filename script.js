@@ -6,11 +6,20 @@ let currentInputName = ''; // 入力されたファイル名またはテキス�
 let analysisHistory = []; // 分析履歴
 const MAX_HISTORY_SIZE = 20; // 最大履歴保存数
 
-// DOM要素
+// DOM要素 - 画面
 const disclaimerScreen = document.getElementById('disclaimer-screen');
+const registrationScreen = document.getElementById('registration-screen');
 const checkerScreen = document.getElementById('checker-screen');
+
+// DOM要素 - 免責事項画面
 const consentCheckbox = document.getElementById('consent-checkbox');
 const startButton = document.getElementById('start-button');
+
+// DOM要素 - 登録画面
+const ageSelect = document.getElementById('age-select');
+const genderRadios = document.querySelectorAll('input[name="gender"]');
+const emailInput = document.getElementById('email-input');
+const registerButton = document.getElementById('register-button');
 const fileInput = document.getElementById('file-input');
 const fileSelectBtn = document.getElementById('file-select-btn');
 const uploadArea = document.getElementById('upload-area');
@@ -40,18 +49,23 @@ if (consentCheckbox) {
     console.error('consentCheckbox not found!');
 }
 
-// ツール使用開始
+// 免責事項同意後、登録画面へ遷移
 if (startButton) {
     startButton.addEventListener('click', () => {
-        console.log('Start button clicked!');
-        console.log('Before - disclaimerScreen classes:', disclaimerScreen.className);
-        console.log('Before - checkerScreen classes:', checkerScreen.className);
+        console.log('Start button clicked - moving to registration screen');
 
-        disclaimerScreen.classList.remove('active');
-        checkerScreen.classList.add('active');
-
-        console.log('After - disclaimerScreen classes:', disclaimerScreen.className);
-        console.log('After - checkerScreen classes:', checkerScreen.className);
+        // 既に登録済みかチェック
+        const existingUserInfo = localStorage.getItem('userInfo');
+        if (existingUserInfo) {
+            // 登録済みの場合は直接ツール画面へ
+            console.log('User already registered, skipping registration');
+            disclaimerScreen.classList.remove('active');
+            checkerScreen.classList.add('active');
+        } else {
+            // 未登録の場合は登録画面へ
+            disclaimerScreen.classList.remove('active');
+            registrationScreen.classList.add('active');
+        }
     });
 } else {
     console.error('startButton not found!');
@@ -810,4 +824,139 @@ function toggleHistoryPanel() {
 
     panel.classList.toggle('active');
     updateHistoryUI();
+}
+
+// ========================================
+// ユーザー登録機能
+// ========================================
+
+// 年齢選択時のバリデーション
+if (ageSelect) {
+    ageSelect.addEventListener('change', validateRegistrationForm);
+}
+
+// メールアドレス入力時のバリデーション
+if (emailInput) {
+    emailInput.addEventListener('input', validateRegistrationForm);
+}
+
+// 登録フォームのバリデーション
+function validateRegistrationForm() {
+    const ageValue = ageSelect.value;
+    const emailValue = emailInput.value.trim();
+
+    // 年齢が選択されているかチェック（必須）
+    const isAgeValid = ageValue !== '';
+
+    // メールアドレスのバリデーション（必須 + 形式チェック）
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isEmailValid = emailValue.length > 0 && emailRegex.test(emailValue);
+
+    // 登録ボタンの有効/無効を切り替え
+    const isFormValid = isAgeValid && isEmailValid;
+    registerButton.disabled = !isFormValid;
+
+    return isFormValid;
+}
+
+// ユーザー情報を取得
+function getUserInfo() {
+    const age = ageSelect.value;
+    let gender = 'no-answer';
+
+    // 選択されたラジオボタンを取得
+    const selectedGender = document.querySelector('input[name="gender"]:checked');
+    if (selectedGender) {
+        gender = selectedGender.value;
+    }
+
+    const email = emailInput.value.trim();
+
+    // サイト名を設定（将来的に他のサイトでも使えるよう変更可能に）
+    const siteName = '暗号資産詐欺チェッカー';
+
+    return {
+        age,
+        gender,
+        email,
+        siteName,
+        registeredAt: new Date().toISOString()
+    };
+}
+
+// ユーザー情報をlocalStorageに保存
+function saveUserInfo(userInfo) {
+    try {
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        console.log('User info saved to localStorage:', userInfo);
+        return true;
+    } catch (error) {
+        console.error('Failed to save user info:', error);
+        alert('ユーザー情報の保存に失敗しました。ブラウザの設定を確認してください。');
+        return false;
+    }
+}
+
+// ユーザー情報をGoogle Sheetsに送信
+async function sendToGoogleSheets(userInfo) {
+    const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxpH8mJWk57MDoO5Q0rUdGzQ2GytKhKqjNm1i35j_sQaAFkky6Toi9WmQhG1DcIxWFmVA/exec';
+
+    try {
+        console.log('Sending user info to Google Sheets...');
+
+        const response = await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Google Apps Scriptはno-corsが必要
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userInfo)
+        });
+
+        console.log('Data sent to Google Sheets successfully');
+        return true;
+    } catch (error) {
+        console.error('Failed to send to Google Sheets:', error);
+        // Google Sheetsへの送信失敗はエラーにしない（localStorageには保存済み）
+        return false;
+    }
+}
+
+// 登録ボタンのクリックイベント
+if (registerButton) {
+    registerButton.addEventListener('click', async () => {
+        console.log('Register button clicked');
+
+        // フォームをバリデーション
+        if (!validateRegistrationForm()) {
+            alert('入力内容に誤りがあります。確認してください。');
+            return;
+        }
+
+        // ボタンを無効化（二重送信防止）
+        registerButton.disabled = true;
+        registerButton.textContent = '登録中...';
+
+        // ユーザー情報を取得
+        const userInfo = getUserInfo();
+
+        // localStorageに保存
+        const saved = saveUserInfo(userInfo);
+        if (!saved) {
+            registerButton.disabled = false;
+            registerButton.textContent = '登録して始める';
+            return;
+        }
+
+        // Google Sheetsに送信（バックグラウンドで実行、失敗しても続行）
+        await sendToGoogleSheets(userInfo);
+
+        // ツール画面へ遷移
+        registrationScreen.classList.remove('active');
+        checkerScreen.classList.add('active');
+
+        console.log('Registration completed, moved to checker screen');
+    });
+} else {
+    console.error('registerButton not found!');
 }

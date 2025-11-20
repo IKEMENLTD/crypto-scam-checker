@@ -2336,6 +2336,228 @@ button, a, .tab-btn, .history-item {
     background: linear-gradient(180deg, var(--neon-red) 0%, var(--neon-orange) 100%);
 }
 
+/* ==================== REGISTRATION SCREEN ==================== */
+
+#registration-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+#registration-screen.active {
+    display: flex !important;
+}
+
+.registration-content {
+    background: linear-gradient(135deg, rgba(42, 21, 21, 0.9) 0%, rgba(26, 15, 15, 0.95) 100%);
+    border: 2px solid var(--danger-red);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: var(--glow-red), 0 20px 60px rgba(0, 0, 0, 0.9);
+    position: relative;
+    overflow: hidden;
+}
+
+.registration-content::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 0, 51, 0.1), transparent);
+    animation: scanLine 3s linear infinite;
+}
+
+.registration-content h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--neon-red) 0%, var(--neon-orange) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(255, 23, 68, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.registration-content .subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+}
+
+.registration-form {
+    position: relative;
+    z-index: 1;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.form-icon {
+    stroke: var(--neon-orange);
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 5px rgba(255, 145, 0, 0.5));
+}
+
+.required {
+    color: var(--danger-red);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    background: rgba(255, 0, 51, 0.2);
+    border-radius: 4px;
+}
+
+.optional {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.form-group select,
+.form-group input[type="email"] {
+    width: 100%;
+    background: rgba(10, 10, 10, 0.8);
+    border: 2px solid var(--danger-red);
+    border-radius: 10px;
+    padding: 12px 15px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group select:focus,
+.form-group input[type="email"]:focus {
+    outline: none;
+    border-color: var(--neon-orange);
+    box-shadow: var(--glow-orange);
+    background: rgba(10, 10, 10, 0.95);
+}
+
+.field-note {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.radio-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 10px 16px;
+    background: rgba(10, 10, 10, 0.6);
+    border: 2px solid rgba(255, 0, 51, 0.3);
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.radio-label:hover {
+    background: rgba(255, 0, 51, 0.15);
+    border-color: var(--danger-red);
+}
+
+.radio-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--danger-red);
+}
+
+.radio-label input[type="radio"]:checked + span {
+    color: var(--neon-red);
+    font-weight: 700;
+}
+
+.radio-label span {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.privacy-reminder {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 2px solid var(--text-success);
+    border-radius: 12px;
+    padding: 15px;
+    margin: 30px 0 20px 0;
+}
+
+.privacy-reminder svg {
+    stroke: var(--text-success);
+    flex-shrink: 0;
+    margin-top: 2px;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.5));
+}
+
+.privacy-reminder p {
+    color: var(--text-success);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.form-actions {
+    text-align: center;
+    margin-top: 30px;
+}
+
+/* Responsive adjustments for registration screen */
+@media (max-width: 480px) {
+    .registration-content {
+        padding: 25px 20px;
+    }
+
+    .registration-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .radio-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .radio-label {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 /* ==================== UTILITY ==================== */
 
 .text-danger { color: var(--text-danger); }
